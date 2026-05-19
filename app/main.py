@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Depends
-from sqlmodel import Session, select
+from fastapi import FastAPI
+from database import create_db_and_tables
+import models
 
-from database import create_db_and_tables, get_session
-from models import Monitor
+from routers import monitors
 
 app = FastAPI()
 
@@ -10,24 +10,4 @@ app = FastAPI()
 def on_startup():
     create_db_and_tables()
 
-
-@app.get("/")
-def read_root():
-    return {"message": "Pulsecheck API is running"}
-
-
-@app.post("/monitors")
-def create_monitor(url: str, session: Session = Depends(get_session)):
-    monitor = Monitor(url=url)
-
-    session.add(monitor)
-    session.commit()
-    session.refresh(monitor)
-
-    return monitor
-
-
-@app.get("/monitors")
-def get_monitors(session: Session = Depends(get_session)):
-    monitors = session.exec(select(Monitor)).all()
-    return monitors
+app.include_router(monitors.router)
