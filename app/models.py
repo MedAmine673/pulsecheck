@@ -2,13 +2,10 @@ from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 import datetime
 
-
-
 class Monitor(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     url: str
     results: List["CheckResult"] = Relationship(back_populates="monitor")
-
 
 class CheckResult(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
