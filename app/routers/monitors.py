@@ -50,16 +50,17 @@ def get_history(
     return results
 
 @router.delete("/{monitor_id}")
-def delete_monitor(
-    monitor_id: int,
-    session: Session = Depends(get_session)
-):
+def delete_monitor(monitor_id: int, session: Session = Depends(get_session)):
     monitor = session.get(Monitor, monitor_id)
 
     if not monitor:
         raise HTTPException(status_code=404, detail="Monitor not found")
 
-    session.delete(monitor)
-    session.commit()
+    try:
+        session.delete(monitor)
+        session.commit()
+        return {"message": "Monitor deleted successfully"}
 
-    return {"message": "Monitor deleted successfully"}
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
