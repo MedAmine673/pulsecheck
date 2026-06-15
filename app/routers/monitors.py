@@ -64,3 +64,7 @@ def delete_monitor(monitor_id: int, session: Session = Depends(get_session)):
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/health")
+def health():
+    return {"status": "ok"}
