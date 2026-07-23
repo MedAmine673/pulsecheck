@@ -1,14 +1,20 @@
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import SQLModel, Session, create_engine
+from sqlalchemy.pool import StaticPool
 
-from main import app
-from database import get_session
-from models import Monitor, CheckResult
+from app.main import app
+from app.database import get_session
+from app.models import Monitor, CheckResult
 
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    echo=False,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
 
 
 def override_get_session():
@@ -25,6 +31,12 @@ def client_fixture():
     with TestClient(app) as client:
         yield client
     SQLModel.metadata.drop_all(engine)
+
+
+def test_health(client):
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
 
 
 def test_create_monitor(client):

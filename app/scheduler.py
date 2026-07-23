@@ -5,8 +5,8 @@ import httpx
 
 from sqlmodel import Session, select
 
-from database import engine
-from models import Monitor, CheckResult
+from app.database import engine
+from app.models import Monitor, CheckResult
 
 
 async def check_monitor(client, monitor):

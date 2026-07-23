@@ -1,18 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session, select, SQLModel
 from typing import List
-import datetime
 
-from database import get_session
-from models import Monitor, CheckResult
+from app.database import get_session
+from app.models import Monitor, CheckResult
 
 router = APIRouter(prefix="/monitors", tags=["Monitors"])
-
-from sqlmodel import SQLModel
 
 
 class MonitorCreate(SQLModel):
     url: str
+
 
 @router.post("/", response_model=Monitor)
 def create_monitor(
@@ -27,9 +25,11 @@ def create_monitor(
 
     return monitor
 
+
 @router.get("/", response_model=List[Monitor])
 def get_monitors(session: Session = Depends(get_session)):
     return session.exec(select(Monitor)).all()
+
 
 @router.get("/{monitor_id}/history", response_model=List[CheckResult])
 def get_history(
@@ -49,6 +49,7 @@ def get_history(
 
     return results
 
+
 @router.delete("/{monitor_id}")
 def delete_monitor(monitor_id: int, session: Session = Depends(get_session)):
     monitor = session.get(Monitor, monitor_id)
@@ -64,7 +65,3 @@ def delete_monitor(monitor_id: int, session: Session = Depends(get_session)):
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    
-@router.get("/health")
-def health():
-    return {"status": "ok"}
